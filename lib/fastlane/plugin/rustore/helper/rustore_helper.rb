@@ -49,11 +49,10 @@ module Fastlane
       end
 
       def self.create_draft(token, package_name, publish_type, changelog_path)
-
         changelog = ''
-        if changelog_path != nil
+        if changelog_path
           changelog_data = File.read(changelog_path)
-          if  changelog_data.length > 500
+          if changelog_data.length > 500
             UI.user_error!("Файл 'Что нового?' содержит более 500 символов")
             return
           else
@@ -71,11 +70,8 @@ module Fastlane
 
         UI.message("Debug: response #{response.body}") if ENV['DEBUG']
         if response.body["body"]
-          # Если черновика не было, и мы создали новый, здесь будет draftId
           return response.body["body"]
         elsif response.body["message"]
-          # Если черновик уже существовал, в message будет ошибка вида
-          # "You already have draft version with ID = XXXXXXXXXX", откуда достаем ID существующего черновика.
           return response.body["message"].scan(/\d+/).first.to_i
         else
           raise "Couldn't get draftId from RuStore"
@@ -83,14 +79,19 @@ module Fastlane
       end
 
       def self.upload_app(token, draft_id, is_hms, file_path, package_name, is_aab)
-        if !is_aab
-        if is_hms
-          apk_type = "HMS"
-          is_main = false
-        else
-          apk_type = "Unknown"
-          is_main = true
+        apk_type = nil
+        is_main = nil
+
+        unless is_aab
+          if is_hms
+            apk_type = "HMS"
+            is_main = false
+          else
+            apk_type = "Unknown"
+            is_main = true
+          end
         end
+
         urlEnd = is_aab ? "aab" : "apk"
         mime = is_aab ? "application/x-authorware-bin" : "application/vnd.android.package-archive"
         url = "/public/v1/application/#{package_name}/version/#{draft_id}/#{urlEnd}"
