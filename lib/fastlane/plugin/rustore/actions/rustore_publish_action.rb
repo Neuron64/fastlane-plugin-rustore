@@ -5,7 +5,7 @@ module Fastlane
   module Actions
     class RustorePublishAction < Action
       def self.authors
-        ["Vladislav Onishchenko"]
+        ["Author Name"]
       end
 
       def self.description
@@ -26,55 +26,73 @@ module Fastlane
         token = Helper::RustoreHelper.get_token(key_id: key_id, private_key: private_key)
         # Создание черновика
         draft_id = Helper::RustoreHelper.create_draft(token, package_name, publish_type, changelog_path)
-        # Загрузка aab
+
+        # Загрузка aab или apk
         if aab
-        Helper::RustoreHelper.upload_app(token, draft_id, false, gms_apk, package_name, true)
-        # Если нет aab, то загружаем апк
-        else gms_apk
-        Helper::RustoreHelper.upload_app(token, draft_id, false, gms_apk, package_name, false)
-        # Если путь до хмс передали, то и его заливаем
+          Helper::RustoreHelper.upload_app(token, draft_id, false, gms_apk, package_name, true)
+        elsif gms_apk
+          Helper::RustoreHelper.upload_app(token, draft_id, false, gms_apk, package_name, false)
+        end
+
+        # Если путь до hms передали, то и его заливаем
         unless hms_apk.nil?
           Helper::RustoreHelper.upload_app(token, draft_id, true, hms_apk, package_name, false)
         end
+
         # Отправка на модерацию
         Helper::RustoreHelper.commit_version(token, draft_id, package_name)
-
       end
 
       def self.available_options
         [
-          FastlaneCore::ConfigItem.new(key: :package_name,
-                                       env_name: "RUSTORE_PACKAGE_NAME",
-                                       description: "пакет приложения, например `com.example.example`",
-                                       optional: false),
-          FastlaneCore::ConfigItem.new(key: :key_id,
-                                       env_name: "RUSTORE_KEY_ID",
-                                       description: "идентификатор приватного ключа в русторе",
-                                       optional: false),
-          FastlaneCore::ConfigItem.new(key: :private_key,
-                                       env_name: "RUSTORE_PRIVATE_KEY",
-                                       description: "приватный ключ в русторе",
-                                       optional: false),
-          FastlaneCore::ConfigItem.new(key: :publish_type,
-                                       env_name: "RUSTORE_PUBLISH_TYPE",
-                                       description: "Тип публикации (MANUAL, DELAYED, INSTANTLY). По умолчанию - INSTANTLY",
-                                       optional: true),
-          FastlaneCore::ConfigItem.new(key: :aab,
-                                      env_name: "RUSTORE_AAB",
-                                      description: "путь до aab",
-                                      optional: true),
-          FastlaneCore::ConfigItem.new(key: :gms_apk,
-                                       env_name: "RUSTORE_GMS_APK",
-                                       description: "путь до апк с гуглсервисами",
-                                       optional: true),
-          FastlaneCore::ConfigItem.new(key: :hms_apk,
-                                       env_name: "RUSTORE_HMS_APK",
-                                       description: "путь до апк с хуавейсервисами (опционально)",
-                                       optional: true)
-          FastlaneCore::ConfigItem.new(key: :changelog_path,
-                                       env_name: "RUSTORE_CHANGELOG_PATH",
-                                       description: "путь до файла .txt с описанием Что нового?",
-                                       optional: true)
+          FastlaneCore::ConfigItem.new(
+            key: :package_name,
+            env_name: "RUSTORE_PACKAGE_NAME",
+            description: "пакет приложения, например `com.example.example`",
+            optional: false
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :key_id,
+            env_name: "RUSTORE_KEY_ID",
+            description: "идентификатор приватного ключа в русторе",
+            optional: false
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :private_key,
+            env_name: "RUSTORE_PRIVATE_KEY",
+            description: "приватный ключ в русторе",
+            optional: false
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :publish_type,
+            env_name: "RUSTORE_PUBLISH_TYPE",
+            description: "Тип публикации (MANUAL, DELAYED, INSTANTLY). По умолчанию - INSTANTLY",
+            optional: true
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :aab,
+            env_name: "RUSTORE_AAB",
+            description: "путь до aab",
+            optional: true
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :gms_apk,
+            env_name: "RUSTORE_GMS_APK",
+            description: "путь до апк с гуглсервисами",
+            optional: true
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :hms_apk,
+            env_name: "RUSTORE_HMS_APK",
+            description: "путь до апк с хуавейсервисами (опционально)",
+            optional: true
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :changelog_path,
+            env_name: "RUSTORE_CHANGELOG_PATH",
+            description: "путь до файла .txt с описанием Что нового?",
+            optional: true
+          )
         ]
       end
 
