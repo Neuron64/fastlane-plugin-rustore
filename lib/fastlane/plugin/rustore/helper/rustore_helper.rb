@@ -50,7 +50,7 @@ module Fastlane
 
       def self.create_draft(token, package_name, publish_type, changelog_path)
         changelog = ''
-        if changelog_path
+        if changelog_path != nil
           changelog_data = File.read(changelog_path)
           if changelog_data.length > 500
             UI.user_error!("Файл 'Что нового?' содержит более 500 символов")
@@ -79,10 +79,7 @@ module Fastlane
       end
 
       def self.upload_app(token, draft_id, is_hms, file_path, package_name, is_aab)
-        apk_type = nil
-        is_main = nil
-
-        unless is_aab
+        if !is_aab
           if is_hms
             apk_type = "HMS"
             is_main = false
